@@ -37,9 +37,9 @@
 </head>
 <body>
 <main>
-  <div class="lock">🔐</div>
+  <div class="lock" id="icon">🔐</div>
   <h1 id="title">Add a key</h1>
-  <p>Goes straight to your bots' vault. It never shows in the chat.</p>
+  <p id="sub">Goes straight to your bots' vault. It never shows in the chat.</p>
   <div class="row" id="nameRow">
     <label for="name">Name</label>
     <input id="name" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="EVOLINK_API_KEY">
@@ -88,6 +88,8 @@
     document.getElementById('keyForm').style.display = 'none';
     document.getElementById('cardForm').style.display = 'block';
     if (!q.get('label')) document.getElementById('title').textContent = 'Add a card';
+    document.getElementById('icon').textContent = '💳';
+    document.getElementById('sub').textContent = 'Saved to your bots\' vault. Never shown in the chat, only typed into the checkout.';
   } else if (q.get('field')) {
     document.getElementById('valueLabel').textContent = q.get('field');
   }
