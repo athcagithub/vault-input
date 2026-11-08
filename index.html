@@ -29,6 +29,7 @@
   .eye { position: absolute; right: 8px; bottom: 7px; border: 0; background: none; color: var(--hint);
     padding: 6px; cursor: pointer; display: flex; opacity: .7; }
   .eye.on { color: var(--accent); opacity: 1; }
+  .section { font-size: 13px; font-weight: 600; color: var(--text); margin: 8px 2px 10px; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   #cc, #exp, #cvv, #holder { padding-right: 14px; }
   .fallback { display: none; width: 100%; border: 0; border-radius: 12px; padding: 14px; margin-top: 6px;
@@ -62,6 +63,22 @@
     </div>
     <div class="row"><label for="holder">Name on card</label>
       <input id="holder" autocomplete="cc-name" autocapitalize="characters" placeholder="WILLIAM BAKER"></div>
+    <div class="section">Billing address</div>
+    <div class="row"><label for="a1">Address</label>
+      <input id="a1" autocomplete="billing address-line1" placeholder="Street and number" style="font-family:inherit"></div>
+    <div class="row"><input id="a2" autocomplete="billing address-line2" placeholder="Flat, building (optional)" style="font-family:inherit"></div>
+    <div class="two">
+      <div class="row"><label for="city">City</label>
+        <input id="city" autocomplete="billing address-level2" style="font-family:inherit"></div>
+      <div class="row"><label for="zip">Postcode</label>
+        <input id="zip" autocomplete="billing postal-code" style="font-family:inherit"></div>
+    </div>
+    <div class="two">
+      <div class="row"><label for="state">State / county <span style="opacity:.6">(optional)</span></label>
+        <input id="state" autocomplete="billing address-level1" style="font-family:inherit"></div>
+      <div class="row"><label for="country">Country</label>
+        <input id="country" autocomplete="billing country-name" placeholder="United Kingdom" style="font-family:inherit"></div>
+    </div>
     <div class="row"><label for="cardLabel">What's it for? <span style="opacity:.6">(optional)</span></label>
       <input id="cardLabel" autocomplete="off" placeholder="DeepSeek top-ups" maxlength="60" style="font-family:inherit"></div>
   </div>
@@ -86,6 +103,7 @@
   const isCard = q.get('type') === 'card';
   const cc = document.getElementById('cc'), exp = document.getElementById('exp'),
         cvv = document.getElementById('cvv'), holder = document.getElementById('holder'), cardLabel = document.getElementById('cardLabel');
+  const A = id => document.getElementById(id).value.trim();
   if (isCard) {
     document.getElementById('keyForm').style.display = 'none';
     document.getElementById('cardForm').style.display = 'block';
@@ -100,13 +118,13 @@
   exp.addEventListener('input', () => { const d = digits(exp.value).slice(0, 4); exp.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d; });
   cvv.addEventListener('input', () => { cvv.value = digits(cvv.value).slice(0, 4); });
   const luhn = n => { let s = 0, alt = false; for (let i = n.length - 1; i >= 0; i--) { let d = +n[i]; if (alt) { d *= 2; if (d > 9) d -= 9; } s += d; alt = !alt; } return s % 10 === 0; };
-  const cardOk = () => { const n = digits(cc.value); return n.length >= 13 && luhn(n) && /^(0[1-9]|1[0-2])\/\d{2}$/.test(exp.value) && /^\d{3,4}$/.test(cvv.value) && holder.value.trim().length > 1; };
+  const cardOk = () => { const n = digits(cc.value); return n.length >= 13 && luhn(n) && /^(0[1-9]|1[0-2])\/\d{2}$/.test(exp.value) && /^\d{3,4}$/.test(cvv.value) && holder.value.trim().length > 1 && A('a1') && A('city') && A('zip') && A('country'); };
   const ready = () => /^[A-Z][A-Z0-9_]{1,63}$/.test(clean(nameEl.value)) && (isCard ? cardOk() : valueEl.value.trim().length > 0);
   function save() {
     if (!ready()) { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('error'); return; }
     const name = clean(nameEl.value);
     const data = isCard
-      ? JSON.stringify({ t: 'vault_card', prefix: name, number: digits(cc.value), expiry: exp.value, cvv: cvv.value, holder: holder.value.trim().toUpperCase(), label: cardLabel.value.trim() })
+      ? JSON.stringify({ t: 'vault_card', prefix: name, number: digits(cc.value), expiry: exp.value, cvv: cvv.value, holder: holder.value.trim().toUpperCase(), label: cardLabel.value.trim(), address1: A('a1'), address2: A('a2'), city: A('city'), state: A('state'), postcode: A('zip'), country: A('country') })
       : JSON.stringify({ t: 'vault', name, value: valueEl.value.trim() });
     valueEl.value = ''; cc.value = ''; cvv.value = '';
     if (tg && tg.sendData) tg.sendData(data);
@@ -115,7 +133,7 @@
     tg.ready(); tg.expand();
     tg.MainButton.setText('Save to vault');
     const sync = () => ready() ? tg.MainButton.show() : tg.MainButton.hide();
-    [nameEl, valueEl, cc, exp, cvv, holder].forEach(el => el.addEventListener('input', sync));
+    [nameEl, valueEl, cc, exp, cvv, holder, ...['a1','a2','city','zip','state','country'].map(i => document.getElementById(i))].forEach(el => el.addEventListener('input', sync));
     tg.MainButton.onClick(save);
     sync();
   } else {
