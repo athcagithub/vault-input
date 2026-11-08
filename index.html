@@ -62,6 +62,8 @@
     </div>
     <div class="row"><label for="holder">Name on card</label>
       <input id="holder" autocomplete="cc-name" autocapitalize="characters" placeholder="WILLIAM BAKER"></div>
+    <div class="row"><label for="cardLabel">What's it for? <span style="opacity:.6">(optional)</span></label>
+      <input id="cardLabel" autocomplete="off" placeholder="DeepSeek top-ups" maxlength="60" style="font-family:inherit"></div>
   </div>
   <button class="fallback" id="save" type="button">Save to vault</button>
 </main>
@@ -83,7 +85,7 @@
   };
   const isCard = q.get('type') === 'card';
   const cc = document.getElementById('cc'), exp = document.getElementById('exp'),
-        cvv = document.getElementById('cvv'), holder = document.getElementById('holder');
+        cvv = document.getElementById('cvv'), holder = document.getElementById('holder'), cardLabel = document.getElementById('cardLabel');
   if (isCard) {
     document.getElementById('keyForm').style.display = 'none';
     document.getElementById('cardForm').style.display = 'block';
@@ -104,7 +106,7 @@
     if (!ready()) { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('error'); return; }
     const name = clean(nameEl.value);
     const data = isCard
-      ? JSON.stringify({ t: 'vault_card', prefix: name, number: digits(cc.value), expiry: exp.value, cvv: cvv.value, holder: holder.value.trim().toUpperCase() })
+      ? JSON.stringify({ t: 'vault_card', prefix: name, number: digits(cc.value), expiry: exp.value, cvv: cvv.value, holder: holder.value.trim().toUpperCase(), label: cardLabel.value.trim() })
       : JSON.stringify({ t: 'vault', name, value: valueEl.value.trim() });
     valueEl.value = ''; cc.value = ''; cvv.value = '';
     if (tg && tg.sendData) tg.sendData(data);
